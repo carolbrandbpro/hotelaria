@@ -1,0 +1,27 @@
+# Normalize line endings and handle text/binary files
+
+# Default: let Git detect text files
+* text=auto
+
+# Enforce LF endings for source and config files
+*.js     text eol=lf
+*.jsx    text eol=lf
+*.ts     text eol=lf
+*.tsx    text eol=lf
+*.css    text eol=lf
+*.html   text eol=lf
+*.json   text eol=lf
+*.md     text eol=lf
+*.yml    text eol=lf
+*.yaml   text eol=lf
+*.php    text eol=lf
+
+# Binary assets
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.zip binary
+
+# Keep SVG as text for meaningful diffs
+*.svg text eol=lf
