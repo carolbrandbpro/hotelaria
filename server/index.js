@@ -162,6 +162,11 @@ app.get('/api/host', (req, res) => {
 app.get('/api/config', (req, res) => {
   const data = readData();
   const defaults = {
+    clientName: '',
+    clientCnpj: '',
+    // chaves legadas usadas em várias telas
+    nome: '',
+    cnpj: '',
     calendarSummary: 'Eventos',
     kitchenAvgMinutes: 25,
     msgNew: 'Recebemos seu pedido!\n{local}\nItens: {itens}\nTotal: R$ {total}\nHorário: {horario}\nPrevisão: ~ {previsao} min\nAcompanhe: {link}',
@@ -169,15 +174,40 @@ app.get('/api/config', (req, res) => {
     msgPreparing: 'Pedido em preparo 🍳\nRestante: ~ {restante} min\nAcompanhe: {link}',
     msgDelivered: 'Pedido entregue ✅\nBom apetite!'
   };
-  const cfg = { ...defaults, ...(data.config || {}) };
+  const raw = data.config || {};
+  const nameVal = (raw.clientName || raw.nome || '').toString();
+  const cnpjVal = (raw.clientCnpj || raw.cnpj || '').toString();
+  const cfg = {
+    ...defaults,
+    ...raw,
+    clientName: nameVal,
+    clientCnpj: cnpjVal,
+    nome: nameVal,
+    cnpj: cnpjVal,
+  };
   res.json(cfg);
 });
 
 app.put('/api/config', (req, res) => {
-  const { logoDataUrl, calendarSummary, kitchenAvgMinutes, msgNew, msgAccepted, msgPreparing, msgDelivered, msgNewQuarto, msgNewMesa, msgAcceptedQuarto, msgAcceptedMesa, msgPreparingQuarto, msgPreparingMesa, msgDeliveredQuarto, msgDeliveredMesa } = req.body || {};
+  const { clientName, clientCnpj, nome, cnpj, logoDataUrl, calendarSummary, kitchenAvgMinutes, msgNew, msgAccepted, msgPreparing, msgDelivered, msgNewQuarto, msgNewMesa, msgAcceptedQuarto, msgAcceptedMesa, msgPreparingQuarto, msgPreparingMesa, msgDeliveredQuarto, msgDeliveredMesa } = req.body || {};
   const data = readData();
+  const nameVal = (typeof clientName !== 'undefined'
+    ? String(clientName || '')
+    : (typeof nome !== 'undefined'
+      ? String(nome || '')
+      : (data.config?.clientName || data.config?.nome || '')));
+  const cnpjVal = (typeof clientCnpj !== 'undefined'
+    ? String(clientCnpj || '')
+    : (typeof cnpj !== 'undefined'
+      ? String(cnpj || '')
+      : (data.config?.clientCnpj || data.config?.cnpj || '')));
   data.config = {
     ...data.config,
+    // padroniza e mantém compatibilidade com chaves legadas
+    clientName: nameVal,
+    clientCnpj: cnpjVal,
+    nome: nameVal,
+    cnpj: cnpjVal,
     logoDataUrl: typeof logoDataUrl !== 'undefined' ? (logoDataUrl || null) : (data.config?.logoDataUrl || null),
     calendarSummary: typeof calendarSummary !== 'undefined' ? (String(calendarSummary || '').trim() || 'Eventos') : (data.config?.calendarSummary || 'Eventos'),
     kitchenAvgMinutes: typeof kitchenAvgMinutes !== 'undefined' ? (Number.isFinite(Number(kitchenAvgMinutes)) ? Math.max(5, Math.min(120, Number(kitchenAvgMinutes))) : (data.config?.kitchenAvgMinutes || 25)) : (data.config?.kitchenAvgMinutes || 25),

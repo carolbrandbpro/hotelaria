@@ -13,6 +13,7 @@ export default function ChatWidget() {
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState('');
   const [toSector, setToSector] = useState('cozinha');
+  const [activeTab, setActiveTab] = useState('setor'); // 'setor' | 'sala'
   const [sending, setSending] = useState(false);
   const [feedback, setFeedback] = useState(null);
   const [filterMySector, setFilterMySector] = useState(true);
@@ -34,6 +35,7 @@ export default function ChatWidget() {
   const mySector = fromSector;
   const lastSeenKey = `chat_last_seen_${user?.usuario || 'anon'}`;
   const outboxKey = `chat_outbox_${user?.usuario || 'anon'}`;
+  const clearedAtKey = `chat_cleared_at_${user?.usuario || 'anon'}`;
   const lastUnreadRef = useRef(0);
   const audioCtxRef = useRef(null);
 
@@ -80,12 +82,14 @@ export default function ChatWidget() {
   useEffect(() => {
     try {
       const seenStr = localStorage.getItem(lastSeenKey);
+      const clearedStr = localStorage.getItem(clearedAtKey);
       const seen = seenStr ? new Date(seenStr) : new Date(0);
+      const cleared = clearedStr ? new Date(clearedStr) : new Date(0);
       const count = messages.filter(m => {
         const ts = new Date(m.createdAt || 0);
         const isMine = (m.fromName === fromName);
         const relevant = (m.toSector === mySector || m.fromSector === mySector || m.toSector === 'geral');
-        return relevant && !isMine && ts > seen;
+        return relevant && !isMine && ts > seen && ts >= cleared;
       }).length;
       if (!open) setUnread(count);
       else setUnread(0);
@@ -109,7 +113,7 @@ export default function ChatWidget() {
       }
       lastUnreadRef.current = count;
     } catch {}
-  }, [messages, open, fromName, mySector, lastSeenKey]);
+  }, [messages, open, fromName, mySector, lastSeenKey, clearedAtKey]);
 
   const send = async () => {
     const trimmed = text.trim();
@@ -125,7 +129,7 @@ export default function ChatWidget() {
       text: trimmed,
       fromName,
       fromSector,
-      toSector,
+      toSector: activeTab === 'sala' ? 'geral' : toSector,
       createdAt: new Date().toISOString(),
     };
     setText('');
@@ -158,6 +162,14 @@ export default function ChatWidget() {
     setUnread(0);
   };
 
+  const clearLocalChat = () => {
+    const ok = window.confirm('Apagar histórico local deste chat? Mensagens novas continuarão a chegar.');
+    if (!ok) return;
+    try { localStorage.setItem(clearedAtKey, new Date().toISOString()); } catch {}
+    setFeedback({ type: 'success', message: 'Histórico local apagado.' });
+    setTimeout(() => setFeedback(null), 2000);
+  };
+
   if (!user || !loggedIn) return null; // apenas logado
 
   return (
@@ -173,19 +185,42 @@ export default function ChatWidget() {
         <div className="card shadow" style={{ width: 320 }}>
           <div className="card-header d-flex justify-content-between align-items-center">
             <strong>Chat</strong>
-            <button className="btn btn-sm btn-outline-secondary" onClick={closeChat}>Fechar</button>
+            <div className="btn-group btn-group-sm">
+              <button className="btn btn-outline-danger" onClick={clearLocalChat}>Limpar</button>
+              <button className="btn btn-outline-secondary" onClick={closeChat}>Fechar</button>
+            </div>
           </div>
           <div className="card-body" style={{ maxHeight: 280, overflowY: 'auto' }}>
             {feedback && (
               <div className={`alert alert-${feedback.type} py-1 px-2 mb-2`}>{feedback.message}</div>
             )}
+            <div className="d-flex justify-content-between align-items-center mb-2">
+              <div className="btn-group btn-group-sm" role="group" aria-label="Abas do chat">
+                <button type="button" className={`btn ${activeTab === 'setor' ? 'btn-primary' : 'btn-outline-primary'}`} onClick={()=>setActiveTab('setor')}>Setor</button>
+                <button type="button" className={`btn ${activeTab === 'sala' ? 'btn-primary' : 'btn-outline-primary'}`} onClick={()=>setActiveTab('sala')}>Sala (todos)</button>
+              </div>
+              {activeTab === 'setor' && (
+                <div className="form-check form-switch">
+                  <input className="form-check-input" type="checkbox" id="filterMySectorHeader" checked={filterMySector} onChange={()=>setFilterMySector(v=>!v)} />
+                  <label className="form-check-label" htmlFor="filterMySectorHeader">Apenas meu setor</label>
+                </div>
+              )}
+            </div>
             {messages.length === 0 ? (
               <p className="text-muted small">Nenhuma mensagem</p>
             ) : (
               messages
                 .slice()
                 .sort((a,b) => new Date(a.createdAt||0) - new Date(b.createdAt||0))
-                .filter(m => !filterMySector ? true : (m.toSector === mySector || m.fromSector === mySector || m.toSector === 'geral'))
+                .filter(m => {
+                  const clearedStr = localStorage.getItem(clearedAtKey);
+                  const cleared = clearedStr ? new Date(clearedStr) : new Date(0);
+                  const sectorOk = activeTab === 'sala'
+                    ? (m.toSector === 'geral')
+                    : (!filterMySector ? true : (m.toSector === mySector || m.fromSector === mySector || m.toSector === 'geral'));
+                  const ts = new Date(m.createdAt || 0);
+                  return sectorOk && ts >= cleared;
+                })
                 .map((m) => (
                   <div key={m.id || `${m.createdAt}-${m.fromName}-${m.text}`}
                        className="mb-2">
@@ -198,17 +233,25 @@ export default function ChatWidget() {
             )}
           </div>
           <div className="card-footer">
-            <div className="form-check form-switch mb-2">
-              <input className="form-check-input" type="checkbox" id="filterMySector" checked={filterMySector} onChange={()=>setFilterMySector(v=>!v)} />
-              <label className="form-check-label" htmlFor="filterMySector">Mostrar apenas meu setor</label>
-            </div>
-            <div className="mb-2">
-              <select className="form-select form-select-sm" value={toSector} onChange={(e)=>setToSector(e.target.value)}>
-                {sectores.map(s => (
-                  <option key={s.key} value={s.key}>{s.label}</option>
-                ))}
-              </select>
-            </div>
+            {activeTab === 'setor' ? (
+              <>
+                <div className="form-check form-switch mb-2">
+                  <input className="form-check-input" type="checkbox" id="filterMySector" checked={filterMySector} onChange={()=>setFilterMySector(v=>!v)} />
+                  <label className="form-check-label" htmlFor="filterMySector">Mostrar apenas meu setor</label>
+                </div>
+                <div className="mb-2">
+                  <select className="form-select form-select-sm" value={toSector} onChange={(e)=>setToSector(e.target.value)}>
+                    {sectores.map(s => (
+                      <option key={s.key} value={s.key}>{s.label}</option>
+                    ))}
+                  </select>
+                </div>
+              </>
+            ) : (
+              <div className="mb-2">
+                <div className="small text-muted">Enviando para: Sala geral (todos recebem)</div>
+              </div>
+            )}
             <div className="input-group input-group-sm">
               <input type="text" className="form-control" placeholder="Digite uma mensagem"
                      value={text} onChange={(e)=>setText(e.target.value)}

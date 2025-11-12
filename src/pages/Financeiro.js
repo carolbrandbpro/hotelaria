@@ -319,7 +319,7 @@ const Financeiro = () => {
           </div>
         </div>
         <div className="col-md-4">
-          <div className="card bg-danger text-white">
+          <div className="card bg-warning text-dark">
             <div className="card-body">
               <h5 className="card-title">Total de Despesas</h5>
               <h3 className="card-text">R$ {totalDespesas.toFixed(2)}</h3>
@@ -474,7 +474,7 @@ const Financeiro = () => {
                         <tr key={transacao.id}>
                           <td>{transacao.data}</td>
                           <td>
-                            <span className={`badge ${transacao.tipo === 'receita' ? 'bg-success' : 'bg-danger'}`}>
+                            <span className={`badge ${transacao.tipo === 'receita' ? 'bg-success' : 'bg-warning text-dark'}`}>
                               {transacao.tipo === 'receita' ? 'Receita' : 'Despesa'}
                             </span>
                           </td>

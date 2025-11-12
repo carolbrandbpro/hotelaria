@@ -5,10 +5,9 @@ import { api } from '../services/api';
 const Sidebar = ({ currentUser, collapsed = false, open = false, compact = false, onLogout }) => {
   const avatarDefault = (process.env.PUBLIC_URL || '') + '/avatar-default.svg';
   const [cliente, setCliente] = useState({
-    nome: 'Pousada Paraíso Açu',
-    cnpj: '03.286.756/0001-37',
-    // Evita erro 404 inicial: usa avatar padrão até carregar logo
-    fotoUrl: avatarDefault
+    nome: '',
+    cnpj: '',
+    fotoUrl: ''
   });
 
   useEffect(() => {
@@ -31,11 +30,13 @@ const Sidebar = ({ currentUser, collapsed = false, open = false, compact = false
       if (isMounted && savedCfg?.logoDataUrl) {
         setCliente(prev => ({ ...prev, fotoUrl: savedCfg.logoDataUrl }));
       }
-      if (isMounted && savedCfg?.nome) {
-        setCliente(prev => ({ ...prev, nome: savedCfg.nome }));
+      const nomeCfg = (savedCfg?.clientName ?? savedCfg?.nome);
+      const cnpjCfg = (savedCfg?.clientCnpj ?? savedCfg?.cnpj);
+      if (isMounted && typeof nomeCfg !== 'undefined') {
+        setCliente(prev => ({ ...prev, nome: nomeCfg || '' }));
       }
-      if (isMounted && savedCfg?.cnpj) {
-        setCliente(prev => ({ ...prev, cnpj: savedCfg.cnpj }));
+      if (isMounted && typeof cnpjCfg !== 'undefined') {
+        setCliente(prev => ({ ...prev, cnpj: cnpjCfg || '' }));
       }
     } catch {}
 
@@ -46,31 +47,17 @@ const Sidebar = ({ currentUser, collapsed = false, open = false, compact = false
         if (!isMounted || !cfg) return;
         const next = {};
         if (cfg.logoDataUrl) next.fotoUrl = cfg.logoDataUrl;
-        if (cfg.nome) next.nome = cfg.nome;
-        if (cfg.cnpj) next.cnpj = cfg.cnpj;
+        const nomeCfg = (cfg.clientName ?? cfg.nome);
+        const cnpjCfg = (cfg.clientCnpj ?? cfg.cnpj);
+        if (typeof nomeCfg !== 'undefined') next.nome = nomeCfg || '';
+        if (typeof cnpjCfg !== 'undefined') next.cnpj = cnpjCfg || '';
         if (Object.keys(next).length) {
           setCliente(prev => ({ ...prev, ...next }));
         }
       } catch {}
     })();
 
-    // 4) Garantir persistência dos padrões (nome/CNPJ) para outros módulos
-    try {
-      const perfilStr = localStorage.getItem('cliente_perfil');
-      const perfil = perfilStr ? JSON.parse(perfilStr) : {};
-      const nextPerfil = { ...perfil };
-      if (!nextPerfil.nome) nextPerfil.nome = 'Pousada Paraíso Açu';
-      if (!nextPerfil.cnpj) nextPerfil.cnpj = '03.286.756/0001-37';
-      localStorage.setItem('cliente_perfil', JSON.stringify(nextPerfil));
-    } catch {}
-    try {
-      const cfgStr = localStorage.getItem('cliente_config');
-      const cfg = cfgStr ? JSON.parse(cfgStr) : {};
-      let changed = false;
-      if (!cfg.nome) { cfg.nome = 'Pousada Paraíso Açu'; changed = true; }
-      if (!cfg.cnpj) { cfg.cnpj = '03.286.756/0001-37'; changed = true; }
-      if (changed) localStorage.setItem('cliente_config', JSON.stringify(cfg));
-    } catch {}
+    // 4) Removido: não semear padrões; manter vazio quando não preenchido
 
     return () => { isMounted = false; };
   }, []);
@@ -92,15 +79,17 @@ const Sidebar = ({ currentUser, collapsed = false, open = false, compact = false
   return (
     <div className={`sidebar d-flex flex-column p-2 ${collapsed ? 'collapsed' : ''} ${open ? 'open' : ''} ${compact ? 'compact' : ''}`}>
       <div className="sidebar-profile d-flex flex-column align-items-center text-center mb-3">
-        <img
-          src={cliente.fotoUrl || avatarDefault}
-          alt="Logo do Cliente"
-          className="sidebar-avatar sidebar-avatar-large mb-2"
-          onError={(e) => { e.currentTarget.src = avatarDefault; }}
-        />
+        {cliente.fotoUrl ? (
+          <img
+            src={cliente.fotoUrl}
+            alt="Logo do Cliente"
+            className="sidebar-avatar sidebar-avatar-large mb-2"
+            onError={(e) => { e.currentTarget.src = ''; }}
+          />
+        ) : null}
         <div className="sidebar-profile-text">
-          <div className="sidebar-profile-name">{cliente.nome}</div>
-          <div className="sidebar-profile-cnpj">CNPJ: {cliente.cnpj}</div>
+          {cliente.nome ? (<div className="sidebar-profile-name">{cliente.nome}</div>) : null}
+          {cliente.cnpj ? (<div className="sidebar-profile-cnpj">CNPJ: {cliente.cnpj}</div>) : null}
         </div>
       </div>
       {/* Tipo de conta removido do sidebar conforme solicitação */}
