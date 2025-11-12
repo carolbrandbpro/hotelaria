@@ -18,6 +18,8 @@ export default function ChatWidget() {
   const [feedback, setFeedback] = useState(null);
   const [filterMySector, setFilterMySector] = useState(true);
   const [unread, setUnread] = useState(0);
+  const [alertEnabled, setAlertEnabled] = useState(true);
+  const [alertVolume, setAlertVolume] = useState(1); // 0.0 a 1.0
   const user = useMemo(() => {
     try { return JSON.parse(localStorage.getItem('auth_user') || 'null'); } catch { return null; }
   }, []);
@@ -36,6 +38,8 @@ export default function ChatWidget() {
   const lastSeenKey = `chat_last_seen_${user?.usuario || 'anon'}`;
   const outboxKey = `chat_outbox_${user?.usuario || 'anon'}`;
   const clearedAtKey = `chat_cleared_at_${user?.usuario || 'anon'}`;
+  const alertEnabledKey = `chat_alert_enabled_${user?.usuario || 'anon'}`;
+  const alertVolumeKey = `chat_alert_volume_${user?.usuario || 'anon'}`;
   const lastUnreadRef = useRef(0);
   const audioCtxRef = useRef(null);
 
@@ -83,6 +87,14 @@ export default function ChatWidget() {
     try {
       const seenStr = localStorage.getItem(lastSeenKey);
       const clearedStr = localStorage.getItem(clearedAtKey);
+      // carregar preferências de alerta de som
+      const enabledStr = localStorage.getItem(alertEnabledKey);
+      const volumeStr = localStorage.getItem(alertVolumeKey);
+      if (enabledStr !== null) setAlertEnabled(enabledStr === 'true');
+      if (volumeStr !== null) {
+        const vol = Math.max(0, Math.min(1, parseFloat(volumeStr)));
+        if (!Number.isNaN(vol)) setAlertVolume(vol);
+      }
       const seen = seenStr ? new Date(seenStr) : new Date(0);
       const cleared = clearedStr ? new Date(clearedStr) : new Date(0);
       const count = messages.filter(m => {
@@ -94,7 +106,7 @@ export default function ChatWidget() {
       if (!open) setUnread(count);
       else setUnread(0);
       // Som para novas não lidas
-      if (!open && count > lastUnreadRef.current) {
+      if (!open && count > lastUnreadRef.current && alertEnabled && alertVolume > 0) {
         try {
           if (!audioCtxRef.current) audioCtxRef.current = new (window.AudioContext || window.webkitAudioContext)();
           const ctx = audioCtxRef.current;
@@ -102,8 +114,9 @@ export default function ChatWidget() {
           const g = ctx.createGain();
           o.type = 'sine';
           o.frequency.setValueAtTime(880, ctx.currentTime); // tom alto breve
+          const target = Math.max(0.01, 0.08 * alertVolume);
           g.gain.setValueAtTime(0.001, ctx.currentTime);
-          g.gain.exponentialRampToValueAtTime(0.08, ctx.currentTime + 0.01);
+          g.gain.exponentialRampToValueAtTime(target, ctx.currentTime + 0.01);
           g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.15);
           o.connect(g);
           g.connect(ctx.destination);
@@ -113,7 +126,7 @@ export default function ChatWidget() {
       }
       lastUnreadRef.current = count;
     } catch {}
-  }, [messages, open, fromName, mySector, lastSeenKey, clearedAtKey]);
+  }, [messages, open, fromName, mySector, lastSeenKey, clearedAtKey, alertEnabled, alertVolume]);
 
   const send = async () => {
     const trimmed = text.trim();
@@ -186,6 +199,7 @@ export default function ChatWidget() {
           <div className="card-header d-flex justify-content-between align-items-center">
             <strong>Chat</strong>
             <div className="btn-group btn-group-sm">
+              <button className={`btn ${alertEnabled ? 'btn-outline-primary' : 'btn-outline-secondary'}`} onClick={() => { const next = !alertEnabled; setAlertEnabled(next); try { localStorage.setItem(alertEnabledKey, String(next)); } catch {} }} title={alertEnabled ? 'Som de alerta ativado' : 'Som de alerta desativado'}>{alertEnabled ? '🔔' : '🔕'}</button>
               <button className="btn btn-outline-danger" onClick={clearLocalChat}>Limpar</button>
               <button className="btn btn-outline-secondary" onClick={closeChat}>Fechar</button>
             </div>
@@ -233,6 +247,11 @@ export default function ChatWidget() {
             )}
           </div>
           <div className="card-footer">
+            <div className="mb-2 d-flex align-items-center gap-2">
+              <label className="form-label mb-0 small" htmlFor="alertVolume">Volume do alerta</label>
+              <input id="alertVolume" type="range" min="0" max="100" value={Math.round(alertVolume*100)} onChange={(e)=>{ const vol = Math.max(0, Math.min(1, parseInt(e.target.value,10)/100)); setAlertVolume(vol); try { localStorage.setItem(alertVolumeKey, String(vol)); } catch {} }} style={{ flex: 1 }} />
+              <span className="small text-muted" style={{ width: 36, textAlign: 'right' }}>{Math.round(alertVolume*100)}%</span>
+            </div>
             {activeTab === 'setor' ? (
               <>
                 <div className="form-check form-switch mb-2">
