@@ -421,7 +421,7 @@ const Configuracoes = () => {
                     </div>
                   </div>
 
-                  <div className="col">
+                  <div className="col-12">
                     <div className="card h-100 shadow-sm">
                       <div className="card-header"><strong>Entregue</strong></div>
                       <div className="card-body">
