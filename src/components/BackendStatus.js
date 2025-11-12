@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { resolveBase, ping } from '../services/api';
+import { resolveBase } from '../services/api';
 
 function BackendStatus() {
   const [status, setStatus] = useState('checking');
@@ -112,7 +112,7 @@ function BackendStatus() {
       }
       prevStatusRef.current = next;
     }
-  }, [candidates]);
+  }, [candidates, formatMsg]);
 
   useEffect(() => {
     detect();

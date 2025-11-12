@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState, useRef } from 'react';
+import React, { useEffect, useMemo, useState, useRef, useCallback } from 'react';
 import { api, Resources } from '../services/api';
 
 const sectores = [
@@ -37,12 +37,12 @@ export default function ChatWidget() {
   const lastUnreadRef = useRef(0);
   const audioCtxRef = useRef(null);
 
-  const readOutbox = () => {
+  const readOutbox = useCallback(() => {
     try { return JSON.parse(localStorage.getItem(outboxKey) || '[]'); } catch { return []; }
-  };
-  const writeOutbox = (items) => {
+  }, [outboxKey]);
+  const writeOutbox = useCallback((items) => {
     try { localStorage.setItem(outboxKey, JSON.stringify(items)); } catch {}
-  };
+  }, [outboxKey]);
 
   useEffect(() => {
     let mounted = true;
@@ -74,7 +74,7 @@ export default function ChatWidget() {
     flushOutbox();
     const id = setInterval(() => { load(); flushOutbox(); }, 4000);
     return () => { mounted = false; clearInterval(id); };
-  }, []);
+  }, [readOutbox, writeOutbox]);
 
   // Atualiza contador de não lidas quando chegam novas mensagens
   useEffect(() => {

@@ -73,14 +73,9 @@ function App() {
     }
     const savedCompact = localStorage.getItem('sidebar_compact') === 'true';
     setSidebarCompact(savedCompact);
-  }, []);
+  }, [navigate]);
 
-  const toggleTheme = () => {
-    const next = theme === 'light' ? 'dark' : 'light';
-    setTheme(next);
-    localStorage.setItem('site_theme', next);
-    document.documentElement.setAttribute('data-theme', next);
-  };
+  // Removido toggleTheme não utilizado
 
   const toggleSidebar = () => {
     const next = !sidebarCollapsed;

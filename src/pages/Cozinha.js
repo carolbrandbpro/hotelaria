@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { api, Resources } from '../services/api';
 import { Card, Badge, Button, ListGroup, Form, InputGroup, FormControl, Row, Col, Modal, Alert } from 'react-bootstrap';
 import { limparNumero, gerarLinkWhatsApp } from '../utils/whatsapp';
@@ -437,7 +437,7 @@ const Cozinha = () => {
   };
 
   // Filtros de pesquisa
-  const aplicaFiltros = (pedido) => {
+  const aplicaFiltros = useCallback((pedido) => {
     // Oculta pedidos finalizados (fechados)
     if (pedido.finalizado) return false;
     const texto = consulta.trim().toLowerCase();
@@ -451,9 +451,9 @@ const Cozinha = () => {
       pedido.itens.join(' ').toLowerCase().includes(texto);
 
     return passaStatus && passaLocal && passaBusca;
-  };
+  }, [consulta, filtroStatus, filtroLocal]);
 
-  const pedidosFiltrados = useMemo(() => pedidos.filter(aplicaFiltros), [pedidos, consulta, filtroStatus, filtroLocal]);
+  const pedidosFiltrados = useMemo(() => pedidos.filter(aplicaFiltros), [pedidos, aplicaFiltros]);
 
   const contagem = useMemo(() => ({
     total: pedidosFiltrados.length,
