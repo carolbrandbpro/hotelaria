@@ -155,6 +155,36 @@ set REACT_APP_API_BASE=http://localhost:5000/api && npm start
 
 ---
 Qualquer dúvida ou ajuste de comportamento por papel, portas ou persistência, pode ser feito rapidamente editando `src/App.js`, `src/components/Sidebar.js`, `src/components/Navbar.js` e `src/services/api.js`.
+
+## Novidades de UI e Chat
+
+- Configurações — Identidade Visual
+  - Nome/Razão Social, CNPJ e Logo alinhados lado a lado, sem valores padrão automáticos.
+  - Dois cards separados: "Nome da agenda" e "Tempo médio da cozinha (min)".
+- WhatsApp — Mensagens em cards
+  - Cards responsivos (1, 2 ou 3 por linha) para “Novo Pedido”, “Pedido Aceito”, “Em Preparo” e “Entregue”.
+  - O card “Entregue” ocupa a largura inteira da linha e contém três colunas (principal, quarto, mesa).
+  - Tokens suportados: `{local}` `{itens}` `{total}` `{horario}` `{previsao}` `{restante}` `{link}` `{numeroPedido}` `{responsavel}`.
+- Chat interno
+  - Aba "Sala (todos)": envia e exibe mensagens do canal geral (`toSector='geral'`).
+  - Aba "Setor": mantém filtro de setor e seleção de destino.
+  - Botão "Limpar": apaga apenas histórico local do usuário.
+  - Controles de som: `🔔/🔕` e slider de volume com persistência por usuário.
+
+### Como usar o Chat
+
+1. Clique no balão 💬 na página para abrir o chat.
+2. Selecione a aba:
+   - "Sala (todos)" para broadcast geral.
+   - "Setor" para falar com setores específicos (Cozinha, Balcão, etc.).
+3. Use "Limpar" para apagar seu histórico local (mensagens novas continuam chegando).
+4. Ajuste o som com o ícone `🔔/🔕` e o slider de volume (preferências guardadas em `localStorage`).
+
+### Dicas de Configuração
+
+- API Base: defina em Configurações → Conexão da API. Ex.: `http://192.168.1.23:3020/api`.
+- Se o teste `/api/health` falhar no navegador, confirme que o backend está rodando e que a URL está correta. O erro de saúde não afeta o layout.
+- CNPJ: opcional; se informado, a validação exige 14 dígitos.
 ## WhatsApp: Override e Fallback
 
 - Objetivo: garantir envio via WhatsApp mesmo sem número no PMS e permitir ao operador inserir/ajustar rapidamente o destino.
