@@ -204,7 +204,7 @@ export default function ChatWidget() {
               <button className="btn btn-outline-secondary" onClick={closeChat}>Fechar</button>
             </div>
           </div>
-          <div className="card-body" style={{ maxHeight: 280, overflowY: 'auto' }}>
+          <div className="card-body" style={{ maxHeight: 560, overflowY: 'auto' }}>
             {feedback && (
               <div className={`alert alert-${feedback.type} py-1 px-2 mb-2`}>{feedback.message}</div>
             )}
