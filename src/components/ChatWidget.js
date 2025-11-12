@@ -195,7 +195,7 @@ export default function ChatWidget() {
           )}
         </button>
       ) : (
-        <div className="card shadow" style={{ width: 320 }}>
+        <div className="card shadow" style={{ width: 420 }}>
           <div className="card-header d-flex justify-content-between align-items-center">
             <strong>Chat</strong>
             <div className="btn-group btn-group-sm">
@@ -204,7 +204,7 @@ export default function ChatWidget() {
               <button className="btn btn-outline-secondary" onClick={closeChat}>Fechar</button>
             </div>
           </div>
-          <div className="card-body" style={{ maxHeight: 560, overflowY: 'auto' }}>
+          <div className="card-body" style={{ maxHeight: 720, overflowY: 'auto' }}>
             {feedback && (
               <div className={`alert alert-${feedback.type} py-1 px-2 mb-2`}>{feedback.message}</div>
             )}
