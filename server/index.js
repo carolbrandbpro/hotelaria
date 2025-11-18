@@ -579,6 +579,11 @@ if (dbEnabled && pool) {
   });
 }
 
+// Redireciona a raiz para o endpoint de saúde da API
+app.head('/api/health', (req, res) => {
+  res.status(200).end();
+});
+
 // Registra CRUD para demais recursos (ou todos, se DB não habilitado)
 const crudResources = dbEnabled ? ['inventory', 'events', 'transactions', 'rooms', 'chat', 'users'] : ['orders', 'sales', 'inventory', 'events', 'transactions', 'rooms', 'chat', 'users'];
 crudResources.forEach(registerCrud);

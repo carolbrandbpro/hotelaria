@@ -49,11 +49,15 @@ function BackendStatus() {
   ].filter(Boolean);
 
   // usa ping exportado do serviço; aumentamos tolerância ajustando timeout via wrapper
-  const pingWithTimeout = async (b, timeoutMs = 7000) => {
+  const pingWithTimeout = async (b, timeoutMs = 2500) => {
     try {
       const controller = new AbortController();
       const id = setTimeout(() => controller.abort(), timeoutMs);
-      const res = await fetch(`${b}/health`, { signal: controller.signal });
+      const res = await fetch(`${b}/health`, {
+        method: 'HEAD',
+        cache: 'no-store',
+        signal: controller.signal,
+      });
       clearTimeout(id);
       return res.ok;
     } catch {
@@ -116,9 +120,10 @@ function BackendStatus() {
 
   useEffect(() => {
     detect();
-    const id = setInterval(detect, getPollMs());
+    const ms = status === 'online' ? getPollMs() : Math.max(getPollMs(), 60000);
+    const id = setInterval(detect, ms);
     return () => clearInterval(id);
-  }, [detect]);
+  }, [detect, status]);
 
   const label = status === 'online' ? 'Online' : (status === 'offline' ? 'Offline' : 'Verificando');
   const color = status === 'online' ? '#28a745' : (status === 'offline' ? '#dc3545' : '#ffc107');

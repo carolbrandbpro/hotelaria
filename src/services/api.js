@@ -16,7 +16,11 @@ export async function ping(base) {
     const url = `${base}/health`;
     const controller = new AbortController();
     const id = setTimeout(() => controller.abort(), 2000);
-    const res = await fetch(url, { signal: controller.signal });
+    const res = await fetch(url, {
+      method: 'HEAD',
+      cache: 'no-store',
+      signal: controller.signal,
+    });
     clearTimeout(id);
     return res.ok;
   } catch {
