@@ -15,9 +15,9 @@
     "msgPreparingMesa": "",
     "msgDeliveredQuarto": "",
     "msgDeliveredMesa": "",
-    "clientName": "",
+    "clientName": "Nerd Word Tecnologia",
     "clientCnpj": "",
-    "nome": "",
+    "nome": "Nerd Word Tecnologia",
     "cnpj": ""
   },
   "modules": {
@@ -217,7 +217,7 @@
         "1x Salada Caesar"
       ],
       "total": "131.90",
-      "status": "preparando",
+      "status": "entregue",
       "observacoes": "",
       "horario": "21:04",
       "criadoEm": "21:04:59",
@@ -225,9 +225,10 @@
       "createdAt": "2025-11-09T00:04:59.973Z",
       "aceitoPor": "admin",
       "aceitoEm": "21:06",
-      "updatedAt": "2025-11-09T00:26:10.173Z",
+      "updatedAt": "2025-11-12T03:12:24.710Z",
       "preparandoPor": "admin",
-      "preparandoEm": "21:26"
+      "preparandoEm": "21:26",
+      "finalizado": true
     }
   ],
   "sales": [],
@@ -267,7 +268,7 @@
       "descricao": "Conferência anual para discussão de estratégias empresariais.",
       "createdAt": "2025-11-07T00:35:25.568Z",
       "status": "cancelado",
-      "updatedAt": "2025-11-12T01:24:33.287Z",
+      "updatedAt": "2025-11-18T01:38:29.809Z",
       "tipo": "Aniversário"
     },
     {
@@ -297,7 +298,7 @@
       "descricao": "Cerimônia de casamento seguida de recepção.",
       "createdAt": "2025-11-07T00:35:25.575Z",
       "tipo": "Casamento",
-      "updatedAt": "2025-11-12T01:24:33.305Z"
+      "updatedAt": "2025-11-18T01:38:29.814Z"
     },
     {
       "id": 3,
@@ -340,7 +341,7 @@
       "descricao": "Workshop de culinária italiana com chef renomado.",
       "createdAt": "2025-11-07T00:35:25.580Z",
       "tipo": "Aniversário",
-      "updatedAt": "2025-11-12T01:24:33.293Z"
+      "updatedAt": "2025-11-18T01:38:29.820Z"
     },
     {
       "id": 4,
